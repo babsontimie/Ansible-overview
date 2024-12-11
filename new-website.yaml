@@ -1,0 +1,49 @@
+---
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: update repository index
+    tags: always
+    apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == 'Ubuntu'
+
+  - name: update repository index
+    tags: always
+    dnf:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == 'Centos'
+
+- hosts: kuber-servers
+  become: true
+  tasks:
+
+  - name: install apache and php for ubuntu servers
+    tags: apache,apache2,ubuntu
+    apt:
+      name:
+        - apache2
+        - libapache2-mod-php
+      state: latest
+    when: ansible_distribution == 'Ubuntu'
+
+  - name: install apache and php for centos servers
+    tags: apache,centos,httpd
+    dnf:
+      name:
+        - https
+        - php
+      state: latest
+    when: ansible_distribution == 'Centos'
+
+  - name: Copy index files to webserver
+    copy:
+      src: default_site.html
+      dest: /var/www/html/index.html
+      owner: root
+      group: root
+      mode: 0644
+

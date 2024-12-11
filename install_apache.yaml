@@ -1,18 +1,37 @@
 ---
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: update repository index
+    apt:
+        upgrade: dist
+        update_cache=yes
+    when ansible_distribution in [“Debian”, “Ubuntu”]
+
+   - name: update repository index
+    yum:
+        update_only: yes
+        update_cache=yes
+    when ansible_distribution in [“Centos”]
+
 - hosts: kuber-servers
   become: true
   tasks:
 
-  - name: update repository index
-    apt:
-      update-cache=yes
-
   - name: install apache2 package
     apt:
-      name: apache2
-      state: latest
+        name: 
+             - apache2
+             - libapache2-mod-php
+        state: latest
+    when ansible_distribution in [“Debian”, “Ubuntu”]
 
-  - name: add php support for apache
-    apt:
-      name: libapache2-mod-php
-      state: latest
+  - name: install https package
+    yum
+        name: 
+             - https
+             - php
+        state: latest
+    when ansible_distribution in [“Centos”]
+
