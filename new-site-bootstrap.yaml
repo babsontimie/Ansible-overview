@@ -1,0 +1,44 @@
+---
+- hosts: all
+  become: true
+  pre_tasks:
+
+  - name: update repository index
+    tags: always
+    apt:
+      upgrade: dist
+      update_cache: yes
+    when: ansible_distribution == 'Ubuntu'
+
+  - name: update repository index
+    tags: always
+    dnf:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == 'Rocky'
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: create eric user
+    tags: always
+    user:
+      name: eric
+      groups: root 
+
+  - name: add ssh key for eric
+    tags: always
+    authorized_key: 
+      user: eric
+      key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCxc97mW/UwxoaB676ofiPJIjPj4Cajtkb0l2dHjhkfieBmxZ5ekISTGBeku7KJTotrrHNIc8lJHWaVcchOokr/A9FkwRxO2aoCq0Cib10j28dZX9cdldv9Q7Y6h4qr7K1A2oDWf9u8V6RmlUfnhrEv7L3SI55ZHrJCfaHzPWhNaoOHSCq1JpHR3Mh/giaewQ4+CdUWJhOpPeYDEr5oki/9ycvUCh84gYJJQNLgERVr+Au0SD63GK6BFeIfxZ37wLZpMLNbJQ72SJD23LOWCsHgVl9Vyafp8fi4NyeGz9menyY6nJAAzBKUf566XJaB/4f1Zjok/Vux9w8ja469XOS5VBmOWrNcex9NWen9W/PdcQPAGQkwuqOemqTM6nU03C2Cg5pLq0OuAPTk+dWPTPD0945iTvSqv1ZIElOzIQsE9TYK9BhtfsoAliJv36LZirTRVuvQDtvW9UGAVIYxpFUUiMqBp2E/oMHDoKEYMm9bmW2frirz35ijVIwHLsJl+hs= teeadmin@ansible-controller.lablan-technologies.com"
+
+  - name: add sudoers file for eric
+    tags: always
+    copy:
+      src: sudoer_eric
+      dest: /etc/sudoers.d/eric
+      owner: root
+      group: root
+      mode: 0440
+

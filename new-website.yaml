@@ -3,19 +3,19 @@
   become: true
   pre_tasks:
 
-  - name: update repository index
+  - name: update repo cache
     tags: always
     apt:
-      upgrade: dist
       update_cache: yes
+    changed_when: false
     when: ansible_distribution == 'Ubuntu'
 
-  - name: update repository index
+  - name: update repo cache
     tags: always
     dnf:
-      update_only: yes
       update_cache: yes
-    when: ansible_distribution == 'Centos'
+    changed_when: false
+    when: ansible_distribution == 'Rocky'
 
 - hosts: kuber-servers
   become: true
@@ -23,7 +23,7 @@
 
   - name: install apache and php for ubuntu servers
     tags: apache,apache2,ubuntu
-    apt:
+    package:
       name:
         - apache2
         - libapache2-mod-php
@@ -32,13 +32,38 @@
 
   - name: install apache and php for centos servers
     tags: apache,centos,httpd
-    dnf:
+    package:
       name:
-        - https
+        - httpd
         - php
       state: latest
-    when: ansible_distribution == 'Centos'
+    when: ansible_distribution == 'Rocky'
 
+  - name: start httpd
+    tags: apache,centos,httpd
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+    when: ansible_distribution == 'Rocky'
+
+  - name: change email address for admin 
+    tags: apache,centos,httpd
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin oktbabs@gmail.com 
+    when: ansible_distribution == 'Rocky'
+    register: httpd
+
+
+  - name: restart httpd (Rocky) 
+    tags: apache,centos,httpd
+    service:
+      name: httpd
+      state: restarted
+    when: httpd.changed
+      
   - name: Copy index files to webserver
     copy:
       src: default_site.html
@@ -46,4 +71,31 @@
       owner: root
       group: root
       mode: 0644
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: add ssh key for eric
+    tags: always
+    authorized_key: 
+      user: eric
+      key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCxc97mW/UwxoaB676ofiPJIjPj4Cajtkb0l2dHjhkfieBmxZ5ekISTGBeku7KJTotrrHNIc8lJHWaVcchOokr/A9FkwRxO2aoCq0Cib10j28dZX9cdldv9Q7Y6h4qr7K1A2oDWf9u8V6RmlUfnhrEv7L3SI55ZHrJCfaHzPWhNaoOHSCq1JpHR3Mh/giaewQ4+CdUWJhOpPeYDEr5oki/9ycvUCh84gYJJQNLgERVr+Au0SD63GK6BFeIfxZ37wLZpMLNbJQ72SJD23LOWCsHgVl9Vyafp8fi4NyeGz9menyY6nJAAzBKUf566XJaB/4f1Zjok/Vux9w8ja469XOS5VBmOWrNcex9NWen9W/PdcQPAGQkwuqOemqTM6nU03C2Cg5pLq0OuAPTk+dWPTPD0945iTvSqv1ZIElOzIQsE9TYK9BhtfsoAliJv36LZirTRVuvQDtvW9UGAVIYxpFUUiMqBp2E/oMHDoKEYMm9bmW2frirz35ijVIwHLsJl+hs= teeadmin@ansible-controller.lablan-technologies.com"
+
+- hosts: workstations
+  become: true
+  tasks:
+
+  - name: install unzip 
+    package:
+      name: unzip
+
+  - name: install terraform
+    unarchive:
+      src: https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
+      dest: /usr/local/bin
+      remote_src: yes
+      mode: 0755
+      owner: root
+      group: root
 
