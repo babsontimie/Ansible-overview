@@ -1,0 +1,16 @@
+---
+# tasks file for db_servers
+
+- name: install mariadb package (centos)
+  tags: db,centos,mariadb
+  yum:
+    name: mariadb
+    state: latest
+  when: ansible_distribution == “Rocky”
+
+- name: install mariadb package (Ubuntu)
+  tags: db,centos,mariadb
+  apt:
+    name: mariadb-server
+    state: latest
+  when: ansible_distribution == “Ubuntu”

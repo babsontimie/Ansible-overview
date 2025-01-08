@@ -1,0 +1,15 @@
+---
+# tasks file for base
+- name: update repo cache
+  tags: always
+  apt:
+    update_cache: yes
+    changed_when: false
+    when: ansible_distribution == 'Ubuntu'
+- name: update repo cache
+  tags: always
+  dnf:
+    update_cache: yes
+    changed_when: false
+    when: ansible_distribution == 'Rocky'
+
