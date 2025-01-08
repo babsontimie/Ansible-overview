@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: kuber-servers-ub
   become: true
   pre_tasks:
 
@@ -17,7 +17,7 @@
       update_cache: yes
     when: ansible_distribution == 'Rocky'
 
-- hosts: all
+- hosts: kuber-servers-ub
   become: true
   tasks:
 
